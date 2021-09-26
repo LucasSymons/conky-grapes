@@ -1,5 +1,7 @@
 # conky-grapes
 
+![](https://pic.nomagic.uk/R9WuT0MJ)
+
 **The Github repository is only a mirror, only for visibility purppose.** I use GitLab CE for my own projects (which now has mirroring feature on Community Edition).
 
 You can authenticate on [my gitlab server](https://gitlab.nomagic.uk/popi/conky-grapes) using your Github or Gitlab account to submit issues or merge requests.
