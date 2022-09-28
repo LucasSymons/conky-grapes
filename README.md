@@ -1,17 +1,10 @@
 # conky-grapes
 
-![](https://pic.nomagic.uk/R9WuT0MJ)
+## Fork 
+I forked this from Popi to host my own config and have my settings in it. You're free to use it however you like.
 
-**The Github repository is only a mirror, only for visibility purppose.** I use GitLab CE for my own projects (which now has mirroring feature on Community Edition).
+Source [POPI gitlab server](https://gitlab.nomagic.uk/popi/conky-grapes)
 
-You can authenticate on [my gitlab server](https://gitlab.nomagic.uk/popi/conky-grapes) using your Github or Gitlab account to submit issues or merge requests.
-
-### Updates
-- 2018-07-22: changed option `--arch` to `--old` with reverse meaning, so that by default we create config for freetype >= 2.8.
-- 2018-04-04: tagging first stable as reference.
-- 2018-01-28: Activating mirror between gitlab and github for this project. Also latest updates should allow the script to work on gnome-shell (though there might still be shome issues).
-- 2017-08-13: New io_wait ring! Due to the nature of io_wait monitoring in conky, I reversed display for this one. In the middle you will see average values for reads and writes and the rigns will show the 3 processes using most IO.
-It's not perfect, but it can point out which process is creating a bottleneck.
 
 ## What is it
 This repository aims at providing you everything you need to be able to **very quickly** build a fantastic grape-shaped lua/ conky adapted to your machine including:
@@ -22,8 +15,6 @@ and battery when relevant.
 * Possibility to select different colors for the rings, the section titles, and the text.
 
 _note: the limits on cpu and filesystems are for display reason._
-
-![](https://pic.nomagic.uk/W9MjLPJF)
 
 ## Why use it
 To tune up your desktop of course! It is under [GPLv3 License](gpl-3.0.txt), so feel free to use, study, improve and share as you please.
