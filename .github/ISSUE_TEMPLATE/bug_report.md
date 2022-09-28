@@ -1,23 +1,38 @@
-<!---
-Please read this!
+---
+name: Bug report
+about: Create a report to help us improve
+title: ''
+labels: ''
+assignees: ''
 
-Before opening a new issue, make sure that both README.md and 
-Gitlab Wiki have been consulted.
---->
+---
 
-[//]: # (Title for your issue. Example: "Conky not displaying after upgrade")
+**Describe the bug**
+A clear and concise description of what the bug is.
 
-## Description
+**To Reproduce**
+Steps to reproduce the behavior:
+1. Go to '...'
+2. Click on '....'
+3. Scroll down to '....'
+4. See error
 
-Please provide a little details and background on the issue and fill in the generic questions.
+**Expected behavior**
+A clear and concise description of what you expected to happen.
 
-#### Which GNU/Linux Distribution are your using?
+**Screenshots**
+If applicable, add screenshots to help explain your problem.
 
-#### What is the output of the console when calling conky in verbose mode?
+**Desktop (please complete the following information):**
+ - OS: [e.g. iOS]
+ - Browser [e.g. chrome, safari]
+ - Version [e.g. 22]
 
-#### Any extra details
-[//]: # (Was it working before a specific action? Have you had the opportunity to test on a different distribution or desktop environment? Any hint on what may be the issue in your opinion?)
+**Smartphone (please complete the following information):**
+ - Device: [e.g. iPhone6]
+ - OS: [e.g. iOS8.1]
+ - Browser [e.g. stock browser, safari]
+ - Version [e.g. 22]
 
-
-/label ~bug
-/due in one month
+**Additional context**
+Add any other context about the problem here.
