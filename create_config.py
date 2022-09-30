@@ -26,13 +26,14 @@ import platform
 import re
 from collections import OrderedDict
 import sys
+import os
 from os.path import expanduser
 import logging as log
 import pathlib
 
 # Inittiating variables
 home = expanduser("~")
-working_dir = home+'/conky/conky-grapes/'
+working_dir = os.path.dirname(os.path.realpath(sys.argv[0])) + '/'
 src_lua = working_dir+'rings-v2_tpl'
 dest_lua = working_dir+'rings-v2_gen.lua'
 src_conky = working_dir+'conky_tpl'
@@ -217,9 +218,11 @@ def disk_select():
     with open('/proc/mounts') as f:
         for line in f:
             diskinfo = line.split(' ')
+            print(diskinfo[1])
             match1 = re.search(r'^/[a-zA-Z-_]+.', diskinfo[0], re.M | re.I)
-            match2 = re.search(r'^(fuse|bind|nfs|tmpfs)', diskinfo[2], re.M | re.I)
-            if match1 and not match2:
+            match2 = re.search(r'^(fuse|bind|nfs|tmpfs|efi|boot|boot/efi)', diskinfo[2], re.M | re.I)
+            match3 = re.search(r'^\/(fuse|bind|nfs|tmpfs|efi|boot)', diskinfo[1], re.M | re.I)
+            if match1 and not match2 or not match3:
                 disks.append(diskinfo[1])
     disks.sort()
 
@@ -817,7 +820,7 @@ if __name__ == "__main__":
               "\n- {}\n- {} \n\nIf you add a previous conky-grapes running,"
               " the update should be instantaneous. If conky-grapes is not"
               " running, you can activate it with following command:\n"
-              "conky -q -d -c ~/conky/conky-grapes/conky_gen.conkyrc\n\n"
+              "conky -q -d -c ~/.conky/conky-grapes/conky_gen.conkyrc\n\n"
               "If it runs but text is not aligned or font is horribly wrong"
               " (and you installed required fonts), chances are you are using an"
               " old version of freetype2 (< 2.8). The '--old' option when creating"
