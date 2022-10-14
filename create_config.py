@@ -27,12 +27,11 @@ import re
 from collections import OrderedDict
 import sys
 import os
-from os.path import expanduser
 import logging as log
 import pathlib
 
 # Inittiating variables
-home = expanduser("~")
+home = os.path.expanduser("~")
 working_dir = os.path.dirname(os.path.realpath(sys.argv[0])) + '/'
 src_lua = working_dir+'rings-v2_tpl'
 dest_lua = working_dir+'rings-v2_gen.lua'
@@ -186,6 +185,18 @@ def cpu_number():
     log.info('Number of CPU(s) kept: {0}'.format(nbcpu))
     return nbcpu
 
+def interface_up(interface):
+    """ checks the /sys/class/net/operstate file 
+        to see if an interface is up
+    """
+    path = f"/sys/class/net/{interface}/operstate"
+    if os.path.isfile(path):
+        with open(path) as f:
+            for line in f:
+                if "up" in line:
+                    return True
+    return False 
+
 def route_interface():
     """ Returns the network interface used for routing
     """
@@ -193,7 +204,7 @@ def route_interface():
     with open('/proc/net/route') as f:
         for line in f:
             routeinfo = line.split('\t')
-            if routeinfo[1] == "00000000":
+            if routeinfo[1] == "00000000" and interface_up(routeinfo[0]):
                 gwinterface = routeinfo[0]
 
     log.info('Gateway interface: {0}'.format(gwinterface))
@@ -202,13 +213,14 @@ def route_interface():
         as we'll need to know about that for config
     """
     iswifi = False
-    with open('/proc/net/wireless') as f:
-        for line in f:
-            wifi = line.split(':')
-            if len(wifi) > 1:
-                log.info('wifi interface: {0}'.format(wifi[0].strip()))
-                if wifi[0].strip() == gwinterface:
-                    iswifi = True
+    if os.path.isfile('/proc/net/wireless'):
+        with open('/proc/net/wireless') as f:
+            for line in f:
+                wifi = line.split(':')
+                if len(wifi) > 1:
+                    log.info('wifi interface: {0}'.format(wifi[0].strip()))
+                    if wifi[0].strip() == gwinterface:
+                        iswifi = True
     return [gwinterface, iswifi]
 
 def disk_select():
@@ -218,11 +230,12 @@ def disk_select():
     with open('/proc/mounts') as f:
         for line in f:
             diskinfo = line.split(' ')
-            print(diskinfo[1])
             match1 = re.search(r'^/[a-zA-Z-_]+.', diskinfo[0], re.M | re.I)
             match2 = re.search(r'^(fuse|bind|nfs|tmpfs|efi|boot|boot/efi)', diskinfo[2], re.M | re.I)
             match3 = re.search(r'^\/(fuse|bind|nfs|tmpfs|efi|boot)', diskinfo[1], re.M | re.I)
-            if match1 and not match2 or not match3:
+            if match2 or match3:
+                continue
+            elif match1:
                 disks.append(diskinfo[1])
     disks.sort()
 
