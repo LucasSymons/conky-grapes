@@ -23,8 +23,9 @@ conky.config = {
 -- Window specifications #
     own_window_class = override,
 	own_window = true,
+	xinerama_head = 3,
 -- XFCE4 = desktop, sinon 'normal'
-	own_window_type = 'panel',
+	own_window_type = 'normal',
 	own_window_transparent = true,
 
 -- XFCE4 - undecorate not working
@@ -64,7 +65,7 @@ conky.config = {
 --{{ COLOR0 }}
 --{{ COLOR1 }}
 
-	lua_load = '~/.conky/conky-grapes/rings-v2_gen.lua',
+	lua_load = '/home/lucas/.conky/conky-grapes/rings-v2_gen.lua',
 	lua_draw_hook_pre = 'conky_main',
 
     diskio_avg_samples = 2

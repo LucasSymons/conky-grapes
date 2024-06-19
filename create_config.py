@@ -48,6 +48,7 @@ default_fg_color = '0x34cdff'
 couleurs = {
         'yellow': 'fffd1d',
         'lightyellow': 'e7dc64',
+        'oldgold': 'cab135',
         'orange': 'ff8523',
         'lightorange': 'e79064',
         'red': 'ff1d2b',
@@ -770,12 +771,12 @@ if __name__ == "__main__":
                         .format(' '.join(couleurs.keys()))
                         )
     parser.add_argument('-ti', '--color_title', dest='title', metavar='COLOR_TITLE',
-                        default='blue', choices=couleurs,
+                        default='skyblue', choices=couleurs,
                         help='the textual color for the title display, see COLOR_RINGS \
                             for accepted values.'''
                         )
     parser.add_argument('-te', '--color_text', dest='text', metavar='COLOR_TEXT',
-                        default='grey', choices=couleurs,
+                        default='oldgold', choices=couleurs,
                         help='the textual color for the text display, see COLOR_RINGS \
                             for accepted values.'
                        )
