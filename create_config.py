@@ -26,7 +26,7 @@ from collections import OrderedDict
 import sys
 import os
 import logging as log
-import pathlib
+from pathlib import Path, PurePath
 
 # Inittiating variables
 home = os.path.expanduser("~")
@@ -139,26 +139,39 @@ def write_conf_blank(src, dest):
     write_conf(filedata, dest)
 
 
+def hwmon_cpu_check(file):
+    kernel_driver_list = ["coretemp", "k10temp", "k8temp"]
+    file_path = Path(PurePath(file, "name"))
+    try:
+        if file_path.exists():
+            with file_path.open(
+                encoding="ascii",
+            ) as f:
+                driver_name = f.read()
+        if driver_name.strip().lower() in (item.lower() for item in kernel_driver_list):
+            return True
+
+    except Exception as e:
+        log.error("failed to find hwmon path. {0}".format(e))
+
+
 def cpu_temperature():
     """Attempt to return the temperature of CPU"""
     cpu_temp = {}
-    temp_candidates = [
-        "/sys/class/hwmon/hwmon0/temp0_input",
-        "/sys/class/hwmon/hwmon0/temp1_input",
-        "/sys/class/hwmon/hwmon0/temp2_input",
-        "/sys/class/hwmon/hwmon1/temp0_input",
-        "/sys/class/hwmon/hwmon1/temp1_input",
-        "/sys/class/hwmon/hwmon1/temp2_input",
-    ]
+    hwmon_path = Path("/sys/class/hwmon")
+    temp_candidates = [dirs for dirs in hwmon_path.iterdir() if dirs.is_dir()]
     try:
         for i in temp_candidates:
-            p = pathlib.Path(i)
-            pp = pathlib.PurePath(i)
-            log.info("Path is {}".format(p))
-            if p.exists():
-                cpu_temp["number_hwmon"] = re.search(r"\d+$", pp.parent.name).group(0)
-                cpu_temp["number_temp"] = re.sub(r".*(\d+).*$", r"\1", pp.name)
-                break
+            if hwmon_cpu_check(i):
+                p = Path(i)
+                pp = PurePath(i, "temp1_input")
+                log.info("Path is {}".format(p))
+                if p.exists():
+                    cpu_temp["number_hwmon"] = re.search(r"\d+$", pp.parent.name).group(
+                        0
+                    )
+                    cpu_temp["number_temp"] = re.sub(r".*(\d+).*$", r"\1", pp.name)
+                    break
     except Exception as e:
         log.error("failed to find cpu temperature. {0}".format(e))
 
@@ -546,7 +559,9 @@ def write_cpuconf_conky(cpunb):
             adjust
         )
     else:
-        new_block = "${{goto 49}}${{voffset 12}}${{color1}}${{top name 1}}${{alignr 306}}${{top cpu 1}}%"
+        new_block = "${{goto 49}}${{voffset {0}}}${{color1}}${{top name 1}}${{alignr 306}}${{top cpu 1}}%".format(
+            adjust
+        )
 
     cpuconf.append(new_block)
 
