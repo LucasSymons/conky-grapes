@@ -140,6 +140,7 @@ def write_conf_blank(src, dest):
 
 
 def hwmon_cpu_check(file):
+    """check hwmon for CPU temp driver"""
     kernel_driver_list = ["coretemp", "k10temp", "k8temp"]
     file_path = Path(PurePath(file, "name"))
     try:
