@@ -723,7 +723,7 @@ def write_netconf_lua(interface):
         new_block = """\n    {{
         name='{name}',
         arg='{arg}',
-        max=12500,
+        max=1000,
         bg_colour=0x3b3b3b,
         bg_alpha={bg_alpha},
         fg_colour=0x34cdff,
