@@ -689,8 +689,8 @@ def write_netconf_lua(interface: list[str | bool]) -> None:
 
     # Separate max for down/up; tune to your connection speed in KiB/s.
     speed_configs = [
-        ("downspeedf", 12500),  # 12500 KiB/s ≈ 100 Mbps down
-        ("upspeedf", 12500),  # 12500 KiB/s ≈ 100 Mbps up
+        ("downspeedf", 128000),  # 128000 KiB/s ≈ 1 Gbps down
+        ("upspeedf", 128000),  # 128000 KiB/s ≈ 1 Gbps up
     ]
 
     for speed, max_speed in speed_configs:
