@@ -133,6 +133,8 @@ def write_conf_blank(src: str, dest: str) -> None:
     filedata = filedata.replace(
         "--{{ FONTTEXT }}", "    font = 'Play:normal:size={}',".format(ctextsize)
     )
+    # conky does not expand ~ in lua_load; substitute the absolute path.
+    filedata = filedata.replace("'~/", "'" + home + "/")
 
     write_conf(filedata, dest)
 
@@ -356,6 +358,7 @@ def write_batconf() -> None:
     else:
         new_block = "${font Michroma:bold:size=11}${color0}${voffset 90}${alignc}${execi 3600 awk -F '=' '/PRETTY_NAME/ { print $2 }' /etc/os-release | tr -d '\"'}"
         filedata = read_conf(dest_conky)
+        filedata = filedata.replace("#{{ BATTERY }}", "")
         filedata = filedata.replace("#{{ OS }}", new_block)
         write_conf(filedata, dest_conky)
 
