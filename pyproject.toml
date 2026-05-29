@@ -1,13 +1,10 @@
 [project]
 name = "conky-grapes"
 version = "0.1.0"
-description = "Add your description here"
+description = "Conky desktop overlay config generator with Lua ring graphs"
 readme = "README.md"
 requires-python = ">=3.13"
-dependencies = [
-    "argparse>=1.4.0",
-    "pathlib>=1.0.1",
-]
+dependencies = []
 
 [tool.ruff]
 # Exclude a variety of commonly ignored directories.
@@ -44,8 +41,7 @@ exclude = [
 line-length = 88
 indent-width = 4
 
-# Assume Python 3.9
-target-version = "py39"
+target-version = "py313"
 
 [tool.ruff.lint]
 # Enable Pyflakes (`F`) and a subset of the pycodestyle (`E`)  codes by default.

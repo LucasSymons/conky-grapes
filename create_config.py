@@ -28,7 +28,7 @@ import os
 import logging as log
 from pathlib import Path, PurePath
 
-# Inittiating variables
+# Initiating variables
 home = os.path.expanduser("~")
 working_dir = os.path.dirname(os.path.realpath(sys.argv[0])) + "/"
 src_lua = working_dir + "rings-v2_tpl"
@@ -70,27 +70,25 @@ couleurs = {
 }
 
 
-def init(rings, title, text, old, reload):
-    """Initialisation of colors"""
-    # Keeping previous colors?
+def init(
+    rings: str, title: str, text: str, old: bool, reload: bool
+) -> tuple[str, str, str, str, bool]:
+    """Initialise display colours, optionally reloading from existing config."""
     if reload:
-        with open(dest_conky, "r") as f:
+        with open(dest_conky, "r", encoding="utf-8") as f:
             filedata = f.read()
             matchconky = re.findall("^ +color[01] = '#([0-9a-f]{6})", filedata, re.M)
             log.info("colors were: {}".format(matchconky))
 
-        with open(dest_lua, "r") as f:
+        with open(dest_lua, "r", encoding="utf-8") as f:
             filedata = f.read()
             matchlua = re.findall('^normal="0x([0-9a-f]{6})"', filedata, re.M)
             log.info("colors were: {}".format(matchlua))
             crings = "0x" + matchlua[0]
-            # for conky
             ctitle = "#" + matchconky[0]
             ctext = "#" + matchconky[1]
     else:
-        # for lua
         crings = "0x" + couleurs[rings]
-        # for conky
         ctitle = "#" + couleurs[title]
         ctext = "#" + couleurs[text]
     ctextsize = "8"
@@ -98,10 +96,10 @@ def init(rings, title, text, old, reload):
     return crings, ctitle, ctext, ctextsize, old
 
 
-def read_conf(filename):
-    """Read file in variable and returns it"""
+def read_conf(filename: str) -> str | int:
+    """Read file into a string and return it."""
     try:
-        with open(filename, "r") as f:
+        with open(filename, "r", encoding="utf-8") as f:
             filedata = f.read()
     except IOError:
         log.error("[Error] Could not open {}".format(filename))
@@ -109,25 +107,25 @@ def read_conf(filename):
     return filedata
 
 
-def write_conf(filedata, dest):
-    """Write new config file"""
+def write_conf(filedata: str, dest: str) -> None | int:
+    """Write config string to destination file."""
     try:
-        with open(dest, "w") as f:
+        with open(dest, "w", encoding="utf-8") as f:
             f.write(filedata)
     except IOError:
         log.error("[Error] Could not open {}".format(dest))
         return 1
 
 
-def write_color_lua():
-    """Last function called"""
+def write_color_lua() -> None:
+    """Replace the default ring colour in the generated Lua file."""
     datain = read_conf(dest_lua)
     filedata = datain.replace(default_fg_color, crings)
     write_conf(filedata, dest_lua)
 
 
-def write_conf_blank(src, dest):
-    """Reload new config file from template"""
+def write_conf_blank(src: str, dest: str) -> None:
+    """Render colour and font placeholders from template into dest."""
     filedata = read_conf(src)
     log.info("Overwriting config file {}".format(dest))
     filedata = filedata.replace("--{{ COLOR0 }}", "    color0 = '{}',".format(ctitle))
@@ -139,26 +137,25 @@ def write_conf_blank(src, dest):
     write_conf(filedata, dest)
 
 
-def hwmon_cpu_check(file):
-    """check hwmon for CPU temp driver"""
+def hwmon_cpu_check(file: Path) -> bool | None:
+    """Return True if the hwmon entry at file is a known CPU temperature driver."""
     kernel_driver_list = ["coretemp", "k10temp", "k8temp"]
     file_path = Path(PurePath(file, "name"))
     try:
         if file_path.exists():
-            with file_path.open(
-                encoding="ascii",
-            ) as f:
+            with file_path.open(encoding="ascii") as f:
                 driver_name = f.read()
-        if driver_name.strip().lower() in (item.lower() for item in kernel_driver_list):
-            return True
-
+            if driver_name.strip().lower() in (
+                item.lower() for item in kernel_driver_list
+            ):
+                return True
     except Exception as e:
         log.error("failed to find hwmon path. {0}".format(e))
 
 
-def cpu_temperature():
-    """Attempt to return the temperature of CPU"""
-    cpu_temp = {}
+def cpu_temperature() -> dict[str, str]:
+    """Return hwmon index and temp input number for the CPU temperature sensor."""
+    cpu_temp: dict[str, str] = {}
     hwmon_path = Path("/sys/class/hwmon")
     temp_candidates = [dirs for dirs in hwmon_path.iterdir() if dirs.is_dir()]
     try:
@@ -180,16 +177,14 @@ def cpu_temperature():
     return cpu_temp
 
 
-def cpu_number():
-    """Looks for number of CPU threads"""
+def cpu_number() -> int:
+    """Return the number of CPU threads to display (capped at 6)."""
     # beyond 6 it gets ugly
     max_cpu_display = 6
 
-    with open("/proc/cpuinfo") as f:
+    with open("/proc/cpuinfo", encoding="utf-8") as f:
         nbcpu = 0
         for line in f:
-            # Ignore the blank line separating the information between
-            # details about two processing units
             if line.strip():
                 if line.rstrip("\n").startswith("cpu MHz"):
                     nbcpu += 1
@@ -201,23 +196,21 @@ def cpu_number():
     return nbcpu
 
 
-def interface_up(interface):
-    """checks the /sys/class/net/operstate file
-    to see if an interface is up
-    """
+def interface_up(interface: str) -> bool:
+    """Return True if the given network interface reports operstate 'up'."""
     path = f"/sys/class/net/{interface}/operstate"
     if os.path.isfile(path):
-        with open(path) as f:
+        with open(path, encoding="utf-8") as f:
             for line in f:
                 if "up" in line:
                     return True
     return False
 
 
-def route_interface():
-    """Returns the network interface used for routing"""
+def route_interface() -> list[str | bool]:
+    """Return [interface_name, is_wifi] for the default gateway interface."""
     gwinterface = "no_gateway_interface"
-    with open("/proc/net/route") as f:
+    with open("/proc/net/route", encoding="utf-8") as f:
         for line in f:
             routeinfo = line.split("\t")
             if routeinfo[1] == "00000000" and interface_up(routeinfo[0]):
@@ -225,12 +218,9 @@ def route_interface():
 
     log.info("Gateway interface: {0}".format(gwinterface))
 
-    """ Check if the gateway interface is wifi
-        as we'll need to know about that for config
-    """
     iswifi = False
     if os.path.isfile("/proc/net/wireless"):
-        with open("/proc/net/wireless") as f:
+        with open("/proc/net/wireless", encoding="utf-8") as f:
             for line in f:
                 wifi = line.split(":")
                 if len(wifi) > 1:
@@ -240,10 +230,10 @@ def route_interface():
     return [gwinterface, iswifi]
 
 
-def disk_select():
-    """Return the mount point to monitor"""
-    disks = []
-    with open("/proc/mounts") as f:
+def disk_select() -> list[str]:
+    """Return up to 3 locally mounted filesystem mount points to monitor."""
+    disks: list[str] = []
+    with open("/proc/mounts", encoding="utf-8") as f:
         for line in f:
             diskinfo = line.split(" ")
             match1 = re.search(r"^/[a-zA-Z-_]+.", diskinfo[0], re.M | re.I)
@@ -271,35 +261,28 @@ def disk_select():
     return diskKeep
 
 
-def meminfo():
-    """Return the information in /proc/meminfo as a dictionary"""
-    meminfo = OrderedDict()
+def meminfo() -> OrderedDict:
+    """Return the contents of /proc/meminfo as an ordered dictionary."""
+    mem: OrderedDict = OrderedDict()
 
-    with open("/proc/meminfo") as f:
+    with open("/proc/meminfo", encoding="utf-8") as f:
         for line in f:
-            meminfo[line.split(":")[0]] = line.split(":")[1].strip()
+            mem[line.split(":")[0]] = line.split(":")[1].strip()
 
-    log.info("Total memory: {0}".format(meminfo["MemTotal"]))
-    log.info("Free memory: {0}".format(meminfo["MemFree"]))
-    return meminfo
+    log.info("Total memory: {0}".format(mem["MemTotal"]))
+    log.info("Free memory: {0}".format(mem["MemFree"]))
+    return mem
 
 
-def write_batconf():
-    """Prepare lua config for BATTERY if detected"""
+def write_batconf() -> None:
+    """Detect battery presence and write battery Lua and conky config blocks."""
     BAT = None
     log.info("Looking for battery info")
     for i in range(2):
-        try:
-            open("/sys/class/power_supply/BAT{}/uevent".format(i))
+        if Path("/sys/class/power_supply/BAT{}/uevent".format(i)).exists():
             BAT = i
-        except IOError:
-            log.info("Could not check battery {} via /sys/class/power_suplly".format(i))
-
-        try:
-            open("/proc/acpi/battery/BAT{}/state".format(i))
+        elif Path("/proc/acpi/battery/BAT{}/state".format(i)).exists():
             BAT = i
-        except IOError:
-            log.info("Could not check battery {} via acpi".format(i))
 
     if BAT is not None:
         log.info("Found battery info!")
@@ -371,23 +354,20 @@ def write_batconf():
         )
         write_conf(filedata, dest_conky)
     else:
-        # adjusting if no battery
         new_block = "${font Michroma:bold:size=11}${color0}${voffset 90}${alignc}${execi 3600 awk -F '=' '/PRETTY_NAME/ { print $2 }' /etc/os-release | tr -d '\"'}"
         filedata = read_conf(dest_conky)
         filedata = filedata.replace("#{{ OS }}", new_block)
         write_conf(filedata, dest_conky)
 
 
-def write_fsconf_lua(disk, cpunb):
-    """Prepare lua config for FILESYSTEM"""
+def write_fsconf_lua(disk: list[str], cpunb: int) -> None:
+    """Write filesystem ring definitions into the Lua config."""
     fsconf_lua = []
     fsconf_watch = []
     alpha = 0.8
     radius = 40
-    # we will decrease alpha value for each FS
     alpha_scale = 0.2
     thickness = 10
-    # for disk monitoring in disk_watch
     index_start = cpunb + 4
     log.info("index_start is {}".format(index_start))
 
@@ -415,9 +395,8 @@ def write_fsconf_lua(disk, cpunb):
     }},""".format(**data)
 
         fsconf_lua.append(new_block)
-        # for DISK_WATCH section
         index = index_start + cpt
-        with open(working_dir + "fs_watch") as f:
+        with open(working_dir + "fs_watch", encoding="utf-8") as f:
             for line in f:
                 test = re.sub(r"FILESYS", data["arg"], line)
                 fsconf_watch.append(re.sub(r"INDEX", format(index), test))
@@ -437,8 +416,8 @@ def write_fsconf_lua(disk, cpunb):
     write_conf(filedata, dest_lua)
 
 
-def write_fsconf_conky(fs):
-    """Prepare conky config for CPU"""
+def write_fsconf_conky(fs: list[str]) -> None:
+    """Write filesystem usage text rows into the conky config."""
     conf = []
     if old:
         voffset = -80
@@ -472,13 +451,12 @@ def write_fsconf_conky(fs):
     write_conf(filedata, dest_conky)
 
 
-def write_cpuconf_lua(cpunb):
-    """Prepare lua config for CPU"""
+def write_cpuconf_lua(cpunb: int) -> None:
+    """Write CPU ring definitions into the Lua config."""
     cpuconf_lua = []
     radius = 86
     thickness_max = 13
     alpha = 0.7
-    # we will spread alpha over 0.4 gradient
     alpha_scale = 0.4 / cpunb
     log.info("We have {} CPUs".format(cpunb))
 
@@ -521,15 +499,14 @@ def write_cpuconf_lua(cpunb):
     write_conf(filedata, dest_lua)
 
 
-def write_cpuconf_conky(cpunb):
-    """Prepare conky config for CPU"""
+def write_cpuconf_conky(cpunb: int) -> None:
+    """Write CPU usage text rows into the conky config."""
     cpuconf = []
     if old:
         voffset = 2
     else:
         voffset = 1
 
-    # bring lines closer if many cpus
     if cpunb > 4:
         if cpunb >= 6:
             voffset = -3
@@ -572,8 +549,8 @@ def write_cpuconf_conky(cpunb):
     write_conf(filedata, dest_conky)
 
 
-def write_diskioconf_conky():
-    """Prepare conky config for IO"""
+def write_diskioconf_conky() -> None:
+    """Write disk I/O wait text rows into the conky config."""
     ioconf = []
     if old:
         voffset = 2
@@ -585,8 +562,6 @@ def write_diskioconf_conky():
 
     log.info("voffest is set to {}".format(voffset))
 
-    # top io wait processes
-    # First line, fixed vertical alignment
     new_block = "${voffset -130}${goto 378}${font}${color1}${top_io name 1}${alignr 30}${top_io io_write 1}%\n"
     ioconf.append(new_block)
 
@@ -609,8 +584,8 @@ def write_diskioconf_conky():
     write_conf(filedata, dest_conky)
 
 
-def write_tempconf_conky(temperature):
-    """Prepare conky config for Temperature"""
+def write_tempconf_conky(temperature: dict[str, str]) -> None:
+    """Write CPU frequency and temperature text into the conky config."""
     tempconf = []
 
     log.info("Starting Temperature config")
@@ -624,14 +599,14 @@ def write_tempconf_conky(temperature):
     tempconf.append(new_block)
     log.info("temperature = {}".format(tempconf))
 
-    log.info("Writing TEMPORARY conky config in config file")
+    log.info("Writing TEMPERATURE conky config in config file")
     filedata = read_conf(dest_conky)
     filedata = filedata.replace("#{{ TEMPERATURE }}", "".join(tempconf))
     write_conf(filedata, dest_conky)
 
 
-def write_tempconf_lua(temperature):
-    """Prepare lua config for NETWORK"""
+def write_tempconf_lua(temperature: dict[str, str]) -> None:
+    """Write CPU temperature ring definition into the Lua config."""
     tempconf_lua = []
     data = {
         "arg": "{} temp {}".format(
@@ -655,7 +630,6 @@ def write_tempconf_lua(temperature):
     }},""".format(**data)
 
     tempconf_lua.append(new_block)
-    # set temperature watch accordingly
     tempconf_watch = 'temperature=tonumber(conky_parse("${hwmon ' + data["arg"] + '}"))'
 
     log.info("Writing TEMPERATURE LUA config in config file")
@@ -669,11 +643,10 @@ def write_tempconf_lua(temperature):
     write_conf(filedata, dest_lua)
 
 
-def write_memconf_conky():
-    """Prepare conky config for Memory"""
+def write_memconf_conky() -> None:
+    """Write memory usage text rows into the conky config."""
     memconf = []
 
-    # top memory processes
     log.info("Starting Memory config")
     if old:
         new_block = "${font Michroma:size=10}${color0}${goto 394}${voffset 79}MEMORY\n${font}${goto 324}${voffset -4}${color1}${top_mem name 1}${alignr 40}${top_mem mem 1}%\n"
@@ -702,19 +675,29 @@ def write_memconf_conky():
     write_conf(filedata, dest_conky)
 
 
-def write_netconf_lua(interface):
-    """Prepare lua config for NETWORK"""
+def write_netconf_lua(interface: list[str | bool]) -> None:
+    """Write network speed ring definitions into the Lua config.
+
+    Ring max values are in KiB/s. Adjust these to match your connection speed:
+    100 Mbps = 12500 KiB/s, 250 Mbps = 32000 KiB/s, 1 Gbps = 128000 KiB/s.
+    """
     netconf_lua = []
     alpha = 0.8
     radius = 30
-    # we will spread alpha over 0.4 gradient
     alpha_scale = 0.2
     thickness = 12
 
-    for speed in ["downspeedf", "upspeedf"]:
+    # Separate max for down/up; tune to your connection speed in KiB/s.
+    speed_configs = [
+        ("downspeedf", 12500),  # 12500 KiB/s ≈ 100 Mbps down
+        ("upspeedf", 12500),  # 12500 KiB/s ≈ 100 Mbps up
+    ]
+
+    for speed, max_speed in speed_configs:
         data = {
             "name": speed,
             "arg": interface[0],
+            "max": max_speed,
             "bg_alpha": alpha,
             "radius": radius,
             "thickness": thickness,
@@ -723,7 +706,7 @@ def write_netconf_lua(interface):
         new_block = """\n    {{
         name='{name}',
         arg='{arg}',
-        max=12500,
+        max={max},
         bg_colour=0x3b3b3b,
         bg_alpha={bg_alpha},
         fg_colour=0x34cdff,
@@ -746,13 +729,13 @@ def write_netconf_lua(interface):
     write_conf(filedata, dest_lua)
 
 
-def write_netconf_conky(interface):
-    """Prepare conky config for network interface"""
+def write_netconf_conky(interface: list[str | bool]) -> None:
+    """Write network interface text block into the conky config."""
     netconf = []
     if interface[0] == "no_gateway_interface":
         log.warning("No default route on the system! Tachikoma, what is happening?!")
 
-        with open(working_dir + "nonetconf") as f:
+        with open(working_dir + "nonetconf", encoding="utf-8") as f:
             for line in f:
                 netconf.append(line)
         log.info("Writing NETWORK conky config in config file")
@@ -763,11 +746,11 @@ def write_netconf_conky(interface):
     elif interface[1] is True:
         log.info("Setting up Wifi as main interface")
         if old:
-            with open(working_dir + "wificonf_old") as f:
+            with open(working_dir + "wificonf_old", encoding="utf-8") as f:
                 for line in f:
                     netconf.append(re.sub(r"INTERFACE", interface[0], line))
         else:
-            with open(working_dir + "wificonf") as f:
+            with open(working_dir + "wificonf", encoding="utf-8") as f:
                 for line in f:
                     netconf.append(re.sub(r"INTERFACE", interface[0], line))
 
@@ -778,11 +761,11 @@ def write_netconf_conky(interface):
     else:
         log.info("Setting up NIC as main interface")
         if old:
-            with open(working_dir + "ethconf_old") as f:
+            with open(working_dir + "ethconf_old", encoding="utf-8") as f:
                 for line in f:
                     netconf.append(re.sub(r"INTERFACE", interface[0], line))
         else:
-            with open(working_dir + "ethconf") as f:
+            with open(working_dir + "ethconf", encoding="utf-8") as f:
                 for line in f:
                     netconf.append(re.sub(r"INTERFACE", interface[0], line))
 
@@ -792,12 +775,11 @@ def write_netconf_conky(interface):
         write_conf(filedata, dest_conky)
 
 
-def write_timeconf_conky():
-    """Prepare conky config for Time/Date"""
+def write_timeconf_conky() -> None:
+    """Write time and date text block into the conky config."""
     timeconf = []
 
-    # top timeory processes
-    log.info("Starting Memory config")
+    log.info("Starting Time config")
     if old:
         new_block = "${font Michroma:size=10}${alignr 300}${voffset -40}${color0}${time %a} ${color0}${time %x}\n${font Michroma:size=18}${alignr 318}${color1}${voffset -4}${time %H}:${time %M}"
     else:
@@ -813,7 +795,6 @@ def write_timeconf_conky():
 
 # main
 if __name__ == "__main__":
-    #    print ("called directly")
     print("Digging in the system to gather info...\n")
 
     parser = argparse.ArgumentParser(
@@ -874,7 +855,6 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
-    # Log Level
     if args.verbose:
         log.basicConfig(format="%(levelname)s: %(message)s", level=log.DEBUG)
         log.info("Verbose output.")
@@ -883,27 +863,23 @@ if __name__ == "__main__":
 
     log.info("Arguments received: {}".format(args))
 
-    # init file
     crings, ctitle, ctext, ctextsize, old = init(
         args.rings, args.title, args.text, args.old, args.reload
     )
     write_conf_blank(src_lua, dest_lua)
     write_conf_blank(src_conky, dest_conky)
 
-    # get system info
     temperature = cpu_temperature()
     cpunb = cpu_number()
-    meminfo = meminfo()
+    mem = meminfo()
     interface = route_interface()
     disks = disk_select()
 
-    # wrtie LUA file
     write_tempconf_lua(temperature)
     write_cpuconf_lua(cpunb)
     write_fsconf_lua(disks, cpunb)
     write_netconf_lua(interface)
 
-    # wrtie conky file
     write_tempconf_conky(temperature)
     write_cpuconf_conky(cpunb)
     write_diskioconf_conky()
