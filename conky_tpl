@@ -23,7 +23,7 @@ conky.config = {
 -- Window specifications #
     own_window_class = override,
 	own_window = true,
-	xinerama_head = 0,
+	xinerama_head = 3,
 -- XFCE4 = desktop, sinon 'normal'
 	own_window_type = 'normal',
 	own_window_transparent = true,
