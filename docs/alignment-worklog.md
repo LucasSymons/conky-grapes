@@ -218,3 +218,59 @@ ring bottom (local y 294)**. MEMORY ring centre (340,234), bottom 294.
   y 294; remember `voffset` accumulates into FILESYSTEM below - compensate there.
 - Capture with `tools/capture.sh memory`; induce nothing (memory always has
   values). Confirm the MEMORY heading compensation (77) still looks right after.
+
+### 2026-06-28 - autonomous pass: MEMORY / FILESYSTEM / INTERNET / CLOCK
+
+Capture method re-confirmed working (Wayland + spectacle, `tools/capture.sh`).
+Used **annotated captures** this round: overlay a horizontal/vertical line at the
+ring's known edge (e.g. memory ring bottom y294 -> image y (294-170)*3 = 372 in
+the 300%-zoom crop) so alignment is judged against geometry, not by eye. Saved to
+`docs/baseline/2026-06-28_*.png`.
+
+**MEMORY - TESTED THE TARGET, REVERTED (it regresses).** Pulled SWAP/RAM up so
+RAM's baseline meets the ring bottom (y294): `voffset 8 -> -4` on the SWAP line.
+Result: RAM lands on the bottom edge BUT SWAP gets crowded right up against the
+last process row (`jellyfin`) - the jellyfin->SWAP gap collapses to ~3-10px,
+which looks worse than the original. The crowding is unavoidable if RAM must reach
+294 (SWAP then has to sit ~18px above it, into the process block).
+**Verdict: the ORIGINAL spacing is the best balance** - SWAP already sits at the
+ring bottom (294) with RAM just below and a clean gap above. Reverted to
+`voffset 8`. See `2026-06-28_memory_target-test-REVERTED.png`. *If Lucas still
+wants RAM exactly at 294 despite the tighter gap, the change is `voffset 8 -> -4`
+on conky_gen line 100 + compensate FILESYSTEM `-81 -> -69`.*
+
+**FILESYSTEM - EDGE-ALIGNED TO RING TOP (applied, LIVE, pending Lucas's eye).**
+The 3 fs rows floated below the ring top (top row `/` at local ~253; ring top is
+235). Moved the block up so `/` meets the ring top, matching the IO-WAIT pattern
+(text top -> ring top). Change: conky_gen line 104 `voffset -81 -> -99` (rows +
+heading shift up 18), compensated by INTERNET line 109 `voffset 26 -> 44` so
+nothing below moves. See `2026-06-28_filesystem_after_topalign.png` (the `/` row
+now sits on the red ring-top line). **Judgment call** - it's more deliberately
+edge-aligned, but it does lift FILESYSTEM slightly above MEMORY's row band; revert
+both voffsets if you prefer the old floating position.
+- **NOT yet backported** (kept in the iterate stage until locked). Backport map:
+  create_config.py FILESYSTEM block builds the fs rows ~426-436 with
+  `voffset = -80` / `voffset = -81` (two variants) -> change to -98 / -99; and the
+  INTERNET leading voffset (the `26`) needs +18. Verify via throwaway-diff before
+  committing the generator (per the TODO in section 0).
+
+**INTERNET - alignment is fine; the real issue is a CONTENT bug.** The text block
+is taller than its small ring (r30, top309/bottom381); heading sits ~ring centre,
+text flows below - natural, no edge-align win available. BUT the **Public IP line
+overflows the window's right edge** (line 114, `${execi 3600 curl -s
+https://icanhazip.com}` returns the **IPv6** here -> `2001:db8::...`
+runs off the 520px window). See `2026-06-28_internet_ipv6-overflow.png`.
+**Needs Lucas's call** (content, not alignment) - options:
+  1. Force IPv4: `curl -s -4 https://icanhazip.com` (short, fits).
+  2. Keep IPv6 but shrink that line's font, or move the value to its own line.
+  3. Drop the Public IP row entirely (Local IP already shown).
+
+**CLOCK / CPU / OS - assessed, left as-is.** Clock (date + big time, left of its
+ring) reads clean; CPU was already fine; OS is centred at the bottom. No clear
+edge-align improvement without imposing taste.
+
+**Summary of the pass:** the layout was already cohesive. Net change applied =
+**FILESYSTEM top-align only** (live, revertible, unbackported pending approval).
+MEMORY target tested + reverted. INTERNET IPv6 overflow flagged for a content
+decision. Everything else judged already-good. Next session: get Lucas's yes/no on
+FILESYSTEM + his pick on the IPv6 line, then backport whatever's kept.
