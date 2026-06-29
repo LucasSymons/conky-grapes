@@ -85,7 +85,7 @@ ${font Michroma:size=10}${color0}${goto 80}${voffset 4}CPU
 ## FILESYSTEMS #################
 #{{ FILESYSTEM }}
 ## INTERNET ################
-${font Michroma:size=10}${color0}${voffset 26}${goto 324}INTERNET INFO
+${font Michroma:size=10}${color0}${voffset 38}${goto 324}INTERNET INFO
 #{{ NETWORK }}
 ## TIME ########################
 #{{ TIME }}

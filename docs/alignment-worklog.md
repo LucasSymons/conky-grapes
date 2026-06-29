@@ -274,3 +274,33 @@ edge-align improvement without imposing taste.
 MEMORY target tested + reverted. INTERNET IPv6 overflow flagged for a content
 decision. Everything else judged already-good. Next session: get Lucas's yes/no on
 FILESYSTEM + his pick on the IPv6 line, then backport whatever's kept.
+
+### 2026-06-29 - Lucas-directed: MEMORY / INTERNET / IPv4 - DONE + BACKPORTED
+
+Worked live with Lucas this morning (approved each step). Final state below;
+all **backported to create_config.py / conky_tpl / ethconf** and verified by
+throwaway regen + diff (regenerated `conky.text` is byte-identical to live).
+"Looks great!" - locked in. Final overlay: `docs/baseline/2026-06-29_full_final.png`.
+
+- **MEMORY - label up + block top-anchored.** The fix that beat last night's
+  crowding: move the whole block up via the heading (rows follow), THEN nudge
+  SWAP/RAM to the ring bottom. Net gen values: heading `voffset 77 -> 42`,
+  SWAP `voffset 8 -> 20` (RAM voffset 1 unchanged). create_config.py 657/671
+  (+ old variants 655/669: 97->62, 14->26).
+- **FILESYSTEM - kept the top-align** (Lucas happy). Net gen `voffset -81 -> -76`
+  (the -99 from last night, then +35 to hold under MEMORY's rise, then -12 under
+  the SWAP nudge = -76). create_config.py 428 (-81->-76) + old 426 (-80->-75).
+- **INTERNET - Up/Down matched to the ring BOTTOM.** Moved the whole block; net
+  gen heading `voffset 26 -> 38`. Source: conky_tpl line 88 (the heading is in the
+  template, NOT ethconf - ethconf starts at "Interface"). CLOCK held via TIME
+  `voffset -50 -> -44` (create_config.py 789 + old 787 -40->-34).
+- **Public IP IPv6 overflow FIXED** - forced IPv4: `curl -s -> curl -s -4` in
+  `ethconf` line 5. Now shows e.g. 203.0.113.10, fits the window.
+
+**Backport verification (reusable):** `cp` repo to a scratch dir, run
+`python3 create_config.py` there (no --old = the live variant), then
+`diff` the scratch `conky_gen.conkyrc` conky.text section vs the live one. It came
+back IDENTICAL -> backport correct AND no un-backported drift remains. ruff clean.
+
+**Section status now:** CPU ok / IO WAIT done / MEMORY done / FILESYSTEM done /
+INTERNET done / CLOCK ok / OS ok. The alignment task is essentially complete.

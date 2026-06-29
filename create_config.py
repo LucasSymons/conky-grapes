@@ -423,9 +423,9 @@ def write_fsconf_conky(fs: list[str]) -> None:
     """Write filesystem usage text rows into the conky config."""
     conf = []
     if old:
-        voffset = -80
+        voffset = -75
     else:
-        voffset = -81
+        voffset = -76
     fs_max = 3
 
     for cpt in range(len(fs)):
@@ -652,9 +652,9 @@ def write_memconf_conky() -> None:
 
     log.info("Starting Memory config")
     if old:
-        new_block = "${font Michroma:size=10}${color0}${goto 394}${voffset 97}MEMORY\n${font}${goto 324}${voffset -4}${color1}${top_mem name 1}${alignr 40}${top_mem mem 1}%\n"
+        new_block = "${font Michroma:size=10}${color0}${goto 394}${voffset 62}MEMORY\n${font}${goto 324}${voffset -4}${color1}${top_mem name 1}${alignr 40}${top_mem mem 1}%\n"
     else:
-        new_block = "${font Michroma:size=10}${color0}${goto 394}${voffset 77}MEMORY\n${font}${goto 324}${voffset -4}${color1}${top_mem name 1}${alignr 40}${top_mem mem 1}%\n"
+        new_block = "${font Michroma:size=10}${color0}${goto 394}${voffset 42}MEMORY\n${font}${goto 324}${voffset -4}${color1}${top_mem name 1}${alignr 40}${top_mem mem 1}%\n"
 
     memconf.append(new_block)
 
@@ -666,9 +666,9 @@ def write_memconf_conky() -> None:
         memconf.append(new_block)
 
     if old:
-        new_block = "${voffset 14}${goto 348}${color1}SWAP${alignr 40}${color1}${swap} / ${color1}${swapmax}\n${voffset 3}${goto 348}${color1}RAM ${alignr 40}${color1}${mem} / ${color1}${memmax}\n"
+        new_block = "${voffset 26}${goto 348}${color1}SWAP${alignr 40}${color1}${swap} / ${color1}${swapmax}\n${voffset 3}${goto 348}${color1}RAM ${alignr 40}${color1}${mem} / ${color1}${memmax}\n"
     else:
-        new_block = "${voffset 8}${goto 348}${color1}SWAP${alignr 40}${color1}${swap} / ${color1}${swapmax}\n${voffset 1}${goto 348}${color1}RAM ${alignr 40}${color1}${mem} / ${color1}${memmax}\n"
+        new_block = "${voffset 20}${goto 348}${color1}SWAP${alignr 40}${color1}${swap} / ${color1}${swapmax}\n${voffset 1}${goto 348}${color1}RAM ${alignr 40}${color1}${mem} / ${color1}${memmax}\n"
     memconf.append(new_block)
     log.info("memconf = {}".format(memconf))
 
@@ -784,9 +784,9 @@ def write_timeconf_conky() -> None:
 
     log.info("Starting Time config")
     if old:
-        new_block = "${font Michroma:size=10}${alignr 300}${voffset -40}${color0}${time %a} ${color0}${time %x}\n${font Michroma:size=18}${alignr 318}${color1}${voffset -4}${time %H}:${time %M}"
+        new_block = "${font Michroma:size=10}${alignr 300}${voffset -34}${color0}${time %a} ${color0}${time %x}\n${font Michroma:size=18}${alignr 318}${color1}${voffset -4}${time %H}:${time %M}"
     else:
-        new_block = "${font Michroma:size=10}${alignr 300}${voffset -50}${color0}${time %a} ${color0}${time %x}\n${font Michroma:size=18}${alignr 318}${color1}${voffset -4}${time %H}:${time %M}"
+        new_block = "${font Michroma:size=10}${alignr 300}${voffset -44}${color0}${time %a} ${color0}${time %x}\n${font Michroma:size=18}${alignr 318}${color1}${voffset -4}${time %H}:${time %M}"
 
     timeconf.append(new_block)
 
