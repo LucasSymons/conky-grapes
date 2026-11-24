@@ -16,17 +16,13 @@ conky.config = {
 
 	temperature_unit = 'celsius',
 
--- With class override, gets images to display properly (black bg)
-    own_window_argb_visual = true,
-	own_window_argb_value = 0,
-
 -- Window specifications #
     own_window_class = override,
 	own_window = true,
 	xinerama_head = 3,
 -- XFCE4 = desktop, sinon 'normal'
 	own_window_type = 'normal',
-	own_window_transparent = true,
+	own_window_color = '#00000000',
 
 -- XFCE4 - undecorate not working
 	own_window_hints = 'sticky,skip_taskbar,skip_pager,below,undecorated',
@@ -56,7 +52,7 @@ conky.config = {
 	use_xft = true,
 	override_utf8_locale = true,
 --{{ FONTTEXT }}
-	xftalpha = 0.9,
+	text_alpha = 0.9,
 	uppercase = false,
 
 -- TEXT color
