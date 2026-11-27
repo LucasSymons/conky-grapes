@@ -178,7 +178,6 @@ settings_table = {
 }
 
 require 'cairo'
-require 'cairo_xlib'
 
 function rgb_to_r_g_b(colour,alpha)
 	return ((colour / 0x10000) % 0x100) / 255., ((colour / 0x100) % 0x100) / 255., (colour % 0x100) / 255., alpha
@@ -245,8 +244,8 @@ function conky_ring_stats()
 		draw_ring(cr,pct,pt)
 	end
 
-	if conky_window==nil then return end
-	local cs=cairo_xlib_surface_create(conky_window.display,conky_window.drawable,conky_window.visual, conky_window.width,conky_window.height)
+	local cs=conky_surface()
+	if cs==nil then return end
 
 	local cr=cairo_create(cs)
 
@@ -263,8 +262,7 @@ function conky_ring_stats()
 		setup_rings_io(cr,settings_table_io[i])
         end
 	end
-   cairo_surface_destroy(cs)
-  cairo_destroy(cr)
+	cairo_destroy(cr)
 end
 
 -- Contrôle de l'espace disque
@@ -323,11 +321,11 @@ end
 --end
 
 function conky_draw_bg()
-    if conky_window==nil then return end
+    local cs=conky_surface()
+    if cs==nil then return end
     local w=conky_window.width
     local h=conky_window.height
-    local cs=cairo_xlib_surface_create(conky_window.display, conky_window.drawable, conky_window.visual, w, h)
-    cr=cairo_create(cs)
+    local cr=cairo_create(cs)
 
     cairo_move_to(cr,corner_r,0)
     cairo_line_to(cr,w-corner_r,0)
@@ -342,6 +340,7 @@ function conky_draw_bg()
 
     cairo_set_source_rgba(cr,rgb_to_r_g_b(bg_colour,bg_alpha))
     cairo_fill(cr)
+    cairo_destroy(cr)
 end
 
 
