@@ -22,7 +22,7 @@ Colours are configurable at generation time. The rings, title text, and body tex
 ## Requirements
 
 - Python 3.13+
-- Conky (install `conky-all` / `conky-full` depending on your distro)
+- Conky (install `conky-all` / `conky-full` depending on your distro). The ring drawing uses `conky_surface()`, which upstream documents from 1.24.2, so it works on both X11 and Wayland
 - `curl` (for public IP lookup)
 - Fonts: `Play-Regular.ttf`, `Play-Bold.ttf`, `Michroma.ttf` (included in this repo - install to `~/.local/share/fonts/` or `/usr/share/fonts/`)
 
@@ -79,11 +79,18 @@ The network speed rings default to `max=12500 KiB/s` (~100 Mbps). Adjust `speed_
 
 ## Display position
 
-`conky_tpl` contains `xinerama_head` (which monitor to use, 0-indexed) and `gap_x`/`gap_y` (pixel offset from the corner). Edit these before running the config generator if you need to place the overlay on a specific monitor.
+`conky_tpl` contains `gap_x`/`gap_y` (pixel offset from the corner) and a monitor setting. Edit these before running the config generator if you need to place the overlay on a specific monitor. The monitor setting depends on the display server:
+
+| Session | Setting | Notes |
+|---|---|---|
+| X11 | `xinerama_head` | 0-indexed monitor number |
+| Wayland | `display` | Output name (e.g. `DP-1`), description, or 0-based index. Needs conky 1.26.3 or newer |
+
+On Wayland, `xinerama_head` is ignored, and conky versions before 1.26.3 do not support `display`. In that case the compositor picks the monitor (on KDE Plasma, the one that has focus). Wayland output names are listed by `kscreen-doctor -o` on KDE or `wlr-randr` on wlroots compositors.
 
 ## Re-running after hardware changes
 
-If you add/remove disks, change your network interface, or move to a new machine, re-run `create_config.py`. If conky is already running, the updated config takes effect immediately (conky watches the file).
+If you add/remove disks, change your network interface, or move to a new machine, re-run `create_config.py`, then restart conky so it loads the new files.
 
 ```
  -----------------------------
